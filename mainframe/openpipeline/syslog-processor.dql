@@ -1,0 +1,42 @@
+parse content, """(
+  (DIGIT:reply_id SPACE)?
+  (('$' | '+')? ([A-Z]{3,4}[AEIWS]{0,1}[0-9]{3,5}[A-Z]*):message_id SPACE)
+  (([A-Z0-9]{4,}):sysname (SPACE | ','))?
+  ((TIMESTAMP('MMM dd')):date SPACE)?
+  ((TIMESTAMP('hh:mm:ss')):time SPACE)?
+  ([a-zA-Z0-9]{8,}:job_id ':'? SPACE)?
+  (
+    (LD LF?)
+    (LD LF?)?
+    (LD LF?)?
+    (LD LF?)?
+  ):message
+  (EOF)
+)"""
+| fieldsAdd mf.sysname = if(isNull(sysname), "Other", else: sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "ICH"), "RCAF", else: mf.sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "IEA"), "z/OS", else: mf.sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "IEF"), "z/OS", else: mf.sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "IOE"), "ZFS", else: mf.sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "HZS"), "CHECKIBM", else: mf.sysname)
+| fieldsAdd mf.sysname = if(startsWith(message_id, "HAS"), "JES", else: mf.sysname)
+| fieldsAdd mf.pipeline_check == "Hit"
+| fieldsRename sysname = mf.sysname
+/*
+| fieldsRename mfid = MFID
+| fieldsRename lpar = LPAR
+| fieldsRename sysplex = SYSPLEX
+| fieldsRename system = SYSTEM 
+| fieldsRename source = SOURCE
+| fieldsRename sourceid = SOURCEID
+| fieldsRename dev = DEV
+| fieldsRename interval = INTERVAL
+| fieldsRename msgarea = MSGAREA
+| fieldsRename year = Year
+| fieldsRename dayoftheyear = DayOfTheYear
+| fieldsRename jobid = JobID
+| fieldsRename msgtype = MSGTYPE
+| fieldsRename msgsource = MSGSOURCE
+| fieldsRename msgid = MSGID
+| fieldsRename jobname = JobName
+*/
